@@ -1,7 +1,15 @@
 (function () {
     var webupload = {};
+    PARALLEL_BATCH_SIZE = 4;
+
+    function global_status(cfg) {
+        this.progress = cfg.progress;
+        this.last = cfg.last;
+        this.batch_size = cfg.batch_size || PARALLEL_BATCH_SIZE;
+    };
 
     function xhr_context(cfg) {
+        this.status = cfg.status;
         this.files = cfg.files;
         this.serial = cfg.serial;
         this.cur_idx = cfg.cur_idx;
@@ -64,11 +72,21 @@
                     document.getElementById("uploaded_files").innerHTML = count + "/" + xhr_ctx.files.length;
                 }
 
-                if (xhr_ctx.serial && (idx < xhr_ctx.files.length - 1)) {
-                    // start new file, reset slice start/end.
-                    xhr_ctx.cur_idx++;
-                    xhr_ctx.slice.start = xhr_ctx.slice.end = 0;
-                    upload_one(xhr_ctx);
+                xhr_ctx.status.progress--;
+                if (xhr_ctx.status.last < (xhr_ctx.files.length - 1)) {
+                    var pending = xhr_ctx.files.length - 1 - xhr_ctx.status.last;
+                    pending = Math.min(pending, xhr_ctx.status.batch_size - xhr_ctx.status.progress);
+                    // if serial mode, only one outstanding transfer.
+                    if (xhr_ctx.serial) {
+                        pending = Math.min(pending, 1);
+                    }
+                    for (var i = 0; i < pending; i++) {
+                        xhr_ctx.status.last++;
+                        xhr_ctx.cur_idx = xhr_ctx.status.last;
+                        xhr_ctx.slice.start = xhr_ctx.slice.end = 0;
+                        xhr_ctx.status.progress++;
+                        upload_one(xhr_ctx);
+                    }
                 }
             }
         }, false);
@@ -102,15 +120,26 @@
         var file_list = document.getElementById('file_input').files;
         var parallel = document.getElementById('multi_xhr').checked;
         var chunk = document.getElementById('use_chunk').checked;
+        var bsize = 5;
 
         document.getElementById("uploaded_files").innerHTML = "0/" + file_list.length;
 
+        var status = new global_status({
+            progress: 1,
+            last: 0,
+            batch_size: bsize
+        });
+
         if (parallel) {
-            for (var i = 0; i < file_list.length; i++) {
+            var nprogress = Math.min(file_list.length, status.batch_size);
+            for (var i = 0; i < nprogress; i++) {
+                status.last = i;
+                status.progress = nprogress;
                 var ctx = new xhr_context({
                     files: file_list,
                     cur_idx: i,
                     use_chunk: chunk,
+                    status: status,
                     serial: false
                 });
                 upload_one(ctx);
@@ -120,6 +149,7 @@
                 files: file_list,
                 cur_idx: 0,
                 use_chunk: chunk,
+                status: status,
                 serial: true
             });
             upload_one(ctx);
