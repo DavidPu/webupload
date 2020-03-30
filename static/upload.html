@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>WebUploader</title>
+	<style>
+        table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+    <form action="/upload" enctype="multipart/form-data" method="post">
+        <input id="file_input" type="file" accept="image/*,video/*" multiple /><br>
+        <input id="upload_btn" type="button" value="Upload" />
+        <input name="parallel_upload" id="multi_xhr" type="checkbox" />
+        <label for="parallel_upload">parallel upload</label>
+        <input name="chunk_upload" id="use_chunk" type="checkbox" checked="checked" />
+        <label for="chunk_upload">chunk upload</label><br>
+        <span>Uploaded:<label id="uploaded_files"></label> files</span>
+        <div id="file_info"></div>
+    </form>
+    <script src="/static/js/webupload.js"></script>
+</body>
+
+</html>

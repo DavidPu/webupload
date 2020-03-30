@@ -1,0 +1,15 @@
+# /etc/systemd/system/webupload.service
+
+[Unit]
+Description=uWSGI instance to serve webupload
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/home/pulq/projects/webupload
+Environment="PATH=/home/pulq/projects/webupload/venv/bin"
+ExecStart=/home/pulq/projects/webupload/webupload.startup
+
+[Install]
+WantedBy=multi-user.target
