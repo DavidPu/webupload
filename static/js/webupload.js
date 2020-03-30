@@ -25,7 +25,7 @@
             if (file.size > 1024 * 1024) {
                 file_size = (file.size / 1024 / 1024).toFixed(2) + 'MB';
             } else {
-                file_size = (file.size / 1024).toFixed(2) + 'MB';
+                file_size = (file.size / 1024).toFixed(2) + 'KB';
             }
             info += '<tr><td>' + file.name + '<td>' + file_size + '<td>' + file.type + '<td id=file_id_' + i + '>Waiting</td></tr>';
         }
