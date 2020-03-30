@@ -1,8 +1,6 @@
 import os
 from app import app
-from flask import flash, request, redirect, render_template, make_response
-from werkzeug.utils import secure_filename
-import urllib
+from flask import request, redirect, make_response
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -25,6 +23,14 @@ def upload_stream(filename):
     if not allowed_file(filename):
         return make_response('Invalid file!', 400)
 
+    # werkzeug.util.secure_filename can't handle non-ASCII name.
+    # add our naive check.
+    outfile = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not (os.path.dirname(
+            os.path.abspath(outfile)) == app.config['UPLOAD_FOLDER']):
+        app.logger.warning("Invalid filename!")
+        return make_response('Invalid filename!', 400)
+
     # chunk sequence number in hex format.
     chunk_seq = request.args.get('chunk', '0')
     try:
@@ -33,8 +39,6 @@ def upload_stream(filename):
         return make_response('Invalid chunk parameter', 400)
 
     bytes_left = int(request.headers.get('content-length'))
-    outfile = os.path.join(app.config['UPLOAD_FOLDER'],
-                           secure_filename(filename))
     mode = "ab" if chunk_seq > 0 else "w+b"
 
     with open(outfile, mode) as fd:
