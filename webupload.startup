@@ -2,4 +2,5 @@
 readonly SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 source ${SCRIPT_DIR}/venv/bin/activate
-uwsgi --disable-logging --chmod-socket=777 --socket /tmp/webupload.sock --manage-script-name --mount /webupload=webupload:app
+# uwsgi --disable-logging --chmod-socket=777 --socket /tmp/webupload.sock --manage-script-name --mount /webupload=webupload:app
+uwsgi --chmod-socket=777 --socket /tmp/webupload.sock --manage-script-name --mount /webupload=webupload:app
